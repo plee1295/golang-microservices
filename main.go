@@ -1,27 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/plee1295/handlers"
 )
 
 func main() {
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		log.Println("Hello World")
-		d, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(rw, "Oops", http.StatusBadRequest)
-			return
-		}
+	l := log.New(os.Stdout, "product-api", log.LstdFlags)
 
-		fmt.Fprintf(rw, "Hello %s", d)
-	})
+	hh := handlers.NewHello(l)
+	gh := handlers.NewGoodbye(l)
 
-	http.HandleFunc("/goodbye", func(http.ResponseWriter, *http.Request) {
-		log.Println("Goodbye World")
-	})
+	sm := http.NewServeMux()
+	sm.Handle("/", hh)
+	sm.Handle("/goodbye", gh)
 
-	http.ListenAndServe(":9090", nil)
+	http.ListenAndServe(":9090", sm)
 }

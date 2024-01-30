@@ -18,15 +18,46 @@ type Product struct {
 	DeletedOn   string  `json:"-"`
 }
 
+// Products is a collection of Product
 type Products []*Product
 
+// FromJSON deserializes the contents of the request body into the Product struct
+// NewDecoder provides better performance than json.Unmarshal as it does not have to
+// buffer the entire request body into memory.
+// This reduces the allocations and the overheads of the service.
+//
+// https://golang.org/pkg/encoding/json/#NewDecoder
+func (p *Product) FromJSON(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(p)
+}
+
+// ToJSON serializes the contents of the collection to JSON
+// NewEncoder provides better performance than json.Marshal as it does not
+// have to buffer the output into an in-memory slice of bytes.
+// This reduces the allocations and the overheads of the service
+//
+// https://golang.org/pkg/encoding/json/#NewEncoder
 func (p *Products) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(p)
 }
 
+// GetProducts returns a list of products
 func GetProducts() Products {
 	return productList
+}
+
+// AddProduct adds a new product to the list
+func AddProduct(p *Product) {
+	p.ID = getNextID()
+	productList = append(productList, p)
+}
+
+// getNextID returns the next ID in the sequence
+func getNextID() int {
+	lp := productList[len(productList)-1]
+	return lp.ID + 1
 }
 
 var productList = []*Product{
